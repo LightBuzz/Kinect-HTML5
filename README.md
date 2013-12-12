@@ -20,7 +20,8 @@ Read more about WebSockets in the book [Getting Started with HTML5 WebSocket Pro
 
 Credits
 ---
-The WebSocket server application uses [Fleck, by Jason Staten](https://github.com/statianzo/Fleck).
+* Developed by [Vangos Pterneas](http://pterneas.com) for [LightBuzz](http://lightbuzz.com).
+* The WebSocket server application uses [Fleck, by Jason Staten](https://github.com/statianzo/Fleck).
 
 License
 ---
