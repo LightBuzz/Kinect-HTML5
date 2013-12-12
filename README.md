@@ -16,7 +16,7 @@ Prerequisites
 
 WebSockets
 ---
-Read more about WebSockets in [Getting Started with HTML5 WebSocket Programming, by Vangos Pterneas](http://amzn.to/19cvMj9).
+Read more about WebSockets in the book [Getting Started with HTML5 WebSocket Programming, by Vangos Pterneas](http://amzn.to/19cvMj9).
 
 Credits
 ---
