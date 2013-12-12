@@ -3,6 +3,8 @@ Kinect-HTML5
 
 Display Kinect data on an HTML5 canvas using WebSockets.
 
+![Displaying Kinect skeleton data on an HTML5 canvas](https://raw.github.com/LightBuzz/Kinect-HTML5/master/Screenshot.png)
+
 Description
 ---
 This project connects a Kinect-enabled application to an HTML5 web page and displays the users' skeletons.
