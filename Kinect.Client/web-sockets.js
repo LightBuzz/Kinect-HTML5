@@ -29,7 +29,7 @@
             status.innerHTML = "Kinect skeleton received.";
 
             // 1. Get the data in JSON format.
-            var jsonObject = eval('(' + event.data + ')');
+            var jsonObject = JSON.parse(event.data);
 
             context.clearRect(0, 0, canvas.width, canvas.height);            
 
