@@ -78,16 +78,16 @@ namespace Kinect.Server
             return Serialize(jsonSkeletons);
         }
 
-        // Resource: http://pietschsoft.com/post/2008/02/NET-35-JSON-Serialization-using-the-DataContractJsonSerializer.aspx.
         private static string Serialize(object obj)
         {
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(obj.GetType());
-            MemoryStream ms = new MemoryStream();
-            serializer.WriteObject(ms, obj);
-            string retVal = Encoding.Default.GetString(ms.ToArray());
-            ms.Dispose();
 
-            return retVal;
+            using (MemoryStream ms = new MemoryStream())
+            {
+                serializer.WriteObject(ms, obj);
+
+                return Encoding.Default.GetString(ms.ToArray());
+            }
         }
     }
 }

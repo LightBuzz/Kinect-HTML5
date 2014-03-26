@@ -37,7 +37,7 @@ namespace Kinect.Server
                     Console.WriteLine("Disconnected from " + socket.ConnectionInfo.ClientIpAddress);
                     _clients.Remove(socket);
                 };
-                
+
                 socket.OnMessage = message =>
                 {
                     Console.WriteLine(message);
@@ -55,18 +55,31 @@ namespace Kinect.Server
 
             if (sensor != null)
             {
+                sensor.ColorStream.Enable();
                 sensor.SkeletonStream.Enable();
-                sensor.SkeletonFrameReady += Sensor_SkeletonFrameReady;
+
+                sensor.AllFramesReady += Sensor_AllFramesReady;
 
                 sensor.Start();
             }
         }
 
-        static void Sensor_SkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
+        static void Sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
             if (!_serverInitialized) return;
 
-            List<Skeleton> users = new List<Skeleton>();
+            using (var frame = e.OpenColorImageFrame())
+            {
+                if (frame != null)
+                {
+                    var blob = frame.Serialize();
+
+                    foreach (var socket in _clients)
+                    {
+                        socket.Send(blob);
+                    }
+                }
+            }
 
             using (var frame = e.OpenSkeletonFrame())
             {
@@ -74,13 +87,7 @@ namespace Kinect.Server
                 {
                     frame.CopySkeletonDataTo(_skeletons);
 
-                    foreach (var skeleton in _skeletons)
-                    {
-                        if (skeleton.TrackingState == SkeletonTrackingState.Tracked)
-                        {
-                            users.Add(skeleton);
-                        }
-                    }
+                    var users = _skeletons.Where(s => s.TrackingState == SkeletonTrackingState.Tracked).ToList();
 
                     if (users.Count > 0)
                     {
