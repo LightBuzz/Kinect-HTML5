@@ -2,6 +2,8 @@
     var status = document.getElementById("status");
     var canvas = document.getElementById("canvas");
     var camera = document.getElementById("camera");
+    var buttonColor = document.getElementById("color");
+    var buttonDepth = document.getElementById("depth");
     var context = canvas.getContext("2d");
 
     var camera = new Image();
@@ -53,7 +55,7 @@
             }
         }
         else if (event.data instanceof Blob) {
-            // COLOR FRAME DATA
+            // RGB FRAME DATA
             // 1. Get the raw data.
             var blob = event.data;
 
@@ -69,4 +71,12 @@
             window.URL.revokeObjectURL(source);
         }
     };
+
+    buttonColor.onclick = function () {
+        socket.send("Color");
+    }
+
+    buttonDepth.onclick = function () {
+        socket.send("Depth");
+    }
 };

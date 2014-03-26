@@ -10,17 +10,12 @@ namespace Kinect.Server
     class Program
     {
         static List<IWebSocketConnection> _clients = new List<IWebSocketConnection>();
-        static bool _serverInitialized = false;
 
         static Skeleton[] _skeletons = new Skeleton[6];
 
-        static void Main(string[] args)
-        {
-            InitilizeKinect();
-            InitializeServer();
-        }
+        static Mode _mode = Mode.Color;
 
-        private static void InitializeServer()
+        static void Main(string[] args)
         {
             var server = new WebSocketServer("ws://localhost:8181");
 
@@ -28,23 +23,33 @@ namespace Kinect.Server
             {
                 socket.OnOpen = () =>
                 {
-                    Console.WriteLine("Connected to " + socket.ConnectionInfo.ClientIpAddress);
                     _clients.Add(socket);
                 };
 
                 socket.OnClose = () =>
                 {
-                    Console.WriteLine("Disconnected from " + socket.ConnectionInfo.ClientIpAddress);
                     _clients.Remove(socket);
                 };
 
                 socket.OnMessage = message =>
                 {
-                    Console.WriteLine(message);
+                    switch (message)
+                    {
+                        case "Color":
+                            _mode = Mode.Color;
+                            break;
+                        case "Depth":
+                            _mode = Mode.Depth;
+                            break;
+                        default:
+                            break;
+                    }
+
+                    Console.WriteLine("Switched to " + message);
                 };
             });
 
-            _serverInitialized = true;
+            InitilizeKinect();
 
             Console.ReadLine();
         }
@@ -56,6 +61,7 @@ namespace Kinect.Server
             if (sensor != null)
             {
                 sensor.ColorStream.Enable();
+                sensor.DepthStream.Enable();
                 sensor.SkeletonStream.Enable();
 
                 sensor.AllFramesReady += Sensor_AllFramesReady;
@@ -66,17 +72,34 @@ namespace Kinect.Server
 
         static void Sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
-            if (!_serverInitialized) return;
-
             using (var frame = e.OpenColorImageFrame())
             {
                 if (frame != null)
                 {
                     var blob = frame.Serialize();
 
-                    foreach (var socket in _clients)
+                    if (_mode == Mode.Color)
                     {
-                        socket.Send(blob);
+                        foreach (var socket in _clients)
+                        {
+                            socket.Send(blob);
+                        }
+                    }
+                }
+            }
+
+            using (var frame = e.OpenDepthImageFrame())
+            {
+                if (frame != null)
+                {
+                    var blob = frame.Serialize();
+
+                    if (_mode == Mode.Depth)
+                    {
+                        foreach (var socket in _clients)
+                        {
+                            socket.Send(blob);
+                        }
                     }
                 }
             }
@@ -101,5 +124,11 @@ namespace Kinect.Server
                 }
             }
         }
+    }
+
+    enum Mode
+    {
+        Color,
+        Depth
     }
 }
