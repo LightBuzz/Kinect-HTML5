@@ -1,7 +1,6 @@
 ﻿window.onload = function () {
     var status = document.getElementById("status");
     var canvas = document.getElementById("canvas");
-    var camera = document.getElementById("camera");
     var buttonColor = document.getElementById("color");
     var buttonDepth = document.getElementById("depth");
     var context = canvas.getContext("2d");
