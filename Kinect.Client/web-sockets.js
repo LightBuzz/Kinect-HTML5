@@ -19,7 +19,7 @@
     status.innerHTML = "Connecting to server...";
 
     // Initialize a new web socket.
-    var socket = new WebSocket("ws://localhost:8181/KinectHtml5");
+    var socket = new WebSocket("ws://localhost:8181");
 
     // Connection established.
     socket.onopen = function () {

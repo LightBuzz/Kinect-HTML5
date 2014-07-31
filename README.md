@@ -3,6 +3,10 @@ Kinect-HTML5
 
 Display Kinect data on an HTML5 canvas using WebSockets.
 
+* Color frames
+* Depth frames
+* Body skeletons
+
 ![Displaying Kinect skeleton data on an HTML5 canvas](https://raw.github.com/LightBuzz/Kinect-HTML5/master/Screenshot.png)
 
 Description

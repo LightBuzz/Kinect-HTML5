@@ -6,6 +6,7 @@ using System.Text;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using Microsoft.Kinect;
+using System.Windows;
 
 namespace Kinect.Server
 {
@@ -47,7 +48,14 @@ namespace Kinect.Server
             public double Z { get; set; }
         }
 
-        public static string Serialize(this List<Skeleton> skeletons)
+        /// <summary>
+        /// Serializes an array of Kinect skeletons into an array of JSON skeletons.
+        /// </summary>
+        /// <param name="skeletons">The Kinect skeletons.</param>
+        /// <param name="mapper">The coordinate mapper.</param>
+        /// <param name="mode">Mode (color or depth).</param>
+        /// <returns>A JSON representation of the skeletons.</returns>
+        public static string Serialize(this List<Skeleton> skeletons, CoordinateMapper mapper, Mode mode)
         {
             JSONSkeletonCollection jsonSkeletons = new JSONSkeletonCollection { Skeletons = new List<JSONSkeleton>() };
 
@@ -61,14 +69,30 @@ namespace Kinect.Server
 
                 foreach (Joint joint in skeleton.Joints)
                 {
-                    Joint scaled = joint.ScaleTo(640, 480);
+                    Point point = new Point();
+
+                    switch (mode)
+                    {
+                        case Mode.Color:
+                            ColorImagePoint colorPoint = mapper.MapSkeletonPointToColorPoint(joint.Position, ColorImageFormat.RgbResolution640x480Fps30);
+                            point.X = colorPoint.X;
+                            point.Y = colorPoint.Y;
+                            break;
+                        case Mode.Depth:
+                            DepthImagePoint depthPoint = mapper.MapSkeletonPointToDepthPoint(joint.Position, DepthImageFormat.Resolution640x480Fps30);
+                            point.X = depthPoint.X;
+                            point.Y = depthPoint.Y;
+                            break;
+                        default:
+                            break;
+                    }
 
                     jsonSkeleton.Joints.Add(new JSONJoint
                     {
-                        Name = scaled.JointType.ToString().ToLower(),
-                        X = scaled.Position.X,
-                        Y = scaled.Position.Y,
-                        Z = scaled.Position.Z
+                        Name = joint.JointType.ToString().ToLower(),
+                        X = point.X,
+                        Y = point.Y,
+                        Z = joint.Position.Z
                     });
                 }
 
@@ -78,6 +102,11 @@ namespace Kinect.Server
             return Serialize(jsonSkeletons);
         }
 
+        /// <summary>
+        /// Serializes an object to JSON.
+        /// </summary>
+        /// <param name="obj">The specified object.</param>
+        /// <returns>A JSON representation of the object.</returns>
         private static string Serialize(object obj)
         {
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(obj.GetType());

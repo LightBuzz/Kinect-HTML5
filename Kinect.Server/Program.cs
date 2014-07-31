@@ -15,7 +15,17 @@ namespace Kinect.Server
 
         static Mode _mode = Mode.Color;
 
+        static CoordinateMapper _coordinateMapper;
+
         static void Main(string[] args)
+        {
+            InitializeConnection();
+            InitilizeKinect();
+
+            Console.ReadLine();
+        }
+
+        private static void InitializeConnection()
         {
             var server = new WebSocketServer("ws://localhost:8181");
 
@@ -48,10 +58,6 @@ namespace Kinect.Server
                     Console.WriteLine("Switched to " + message);
                 };
             });
-
-            InitilizeKinect();
-
-            Console.ReadLine();
         }
 
         private static void InitilizeKinect()
@@ -66,6 +72,8 @@ namespace Kinect.Server
 
                 sensor.AllFramesReady += Sensor_AllFramesReady;
 
+                _coordinateMapper = sensor.CoordinateMapper;
+
                 sensor.Start();
             }
         }
@@ -76,10 +84,10 @@ namespace Kinect.Server
             {
                 if (frame != null)
                 {
-                    var blob = frame.Serialize();
-
                     if (_mode == Mode.Color)
                     {
+                        var blob = frame.Serialize();
+
                         foreach (var socket in _clients)
                         {
                             socket.Send(blob);
@@ -92,10 +100,10 @@ namespace Kinect.Server
             {
                 if (frame != null)
                 {
-                    var blob = frame.Serialize();
-
                     if (_mode == Mode.Depth)
                     {
+                        var blob = frame.Serialize();
+
                         foreach (var socket in _clients)
                         {
                             socket.Send(blob);
@@ -114,7 +122,7 @@ namespace Kinect.Server
 
                     if (users.Count > 0)
                     {
-                        string json = users.Serialize();
+                        string json = users.Serialize(_coordinateMapper, _mode);
 
                         foreach (var socket in _clients)
                         {
@@ -124,11 +132,5 @@ namespace Kinect.Server
                 }
             }
         }
-    }
-
-    enum Mode
-    {
-        Color,
-        Depth
     }
 }
