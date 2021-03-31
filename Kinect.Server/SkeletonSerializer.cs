@@ -55,7 +55,7 @@ namespace Kinect.Server
         /// <param name="mapper">The coordinate mapper.</param>
         /// <param name="mode">Mode (color or depth).</param>
         /// <returns>A JSON representation of the skeletons.</returns>
-        public static string Serialize(this List<Skeleton> skeletons, CoordinateMapper mapper, Mode mode)
+        public static string Serialize(this List<Body> skeletons, CoordinateMapper mapper, Mode mode)
         {
             JSONSkeletonCollection jsonSkeletons = new JSONSkeletonCollection { Skeletons = new List<JSONSkeleton>() };
 
@@ -67,19 +67,19 @@ namespace Kinect.Server
                     Joints = new List<JSONJoint>()
                 };
 
-                foreach (Joint joint in skeleton.Joints)
+                foreach (var joint in skeleton.Joints.Values)
                 {
                     Point point = new Point();
 
                     switch (mode)
                     {
                         case Mode.Color:
-                            ColorImagePoint colorPoint = mapper.MapSkeletonPointToColorPoint(joint.Position, ColorImageFormat.RgbResolution640x480Fps30);
+                            var colorPoint = mapper.MapCameraPointToColorSpace(joint.Position);
                             point.X = colorPoint.X;
                             point.Y = colorPoint.Y;
                             break;
                         case Mode.Depth:
-                            DepthImagePoint depthPoint = mapper.MapSkeletonPointToDepthPoint(joint.Position, DepthImageFormat.Resolution640x480Fps30);
+                            var depthPoint = mapper.MapCameraPointToDepthSpace(joint.Position);
                             point.X = depthPoint.X;
                             point.Y = depthPoint.Y;
                             break;

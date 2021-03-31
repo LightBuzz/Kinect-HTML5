@@ -20,6 +20,7 @@
 
     // Initialize a new web socket.
     var socket = new WebSocket("ws://localhost:8181");
+    //socket.binaryType = 'arraybuffer';
 
     // Connection established.
     socket.onopen = function () {
@@ -33,6 +34,7 @@
 
     // Receive data FROM the server!
     socket.onmessage = function (event) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
         if (typeof event.data === "string") {
             // SKELETON DATA
 
@@ -58,24 +60,25 @@
             // 1. Get the raw data.
             var blob = event.data;
 
-            // 2. Create a new URL for the blob object.
-            window.URL = window.URL || window.webkitURL;
-
-            var source = window.URL.createObjectURL(blob);
-
-            // 3. Update the image source.
-            camera.src = source;
-
-            // 4. Release the allocated memory.
-            window.URL.revokeObjectURL(source);
+            // Not supported in modern browsers.
+            //window.URL = window.URL || window.webkitURL;
+            //var source = window.URL.createObjectURL(blob);
+            //camera.src = source;
+            //window.URL.revokeObjectURL(source);
         }
     };
 
     buttonColor.onclick = function () {
         socket.send("Color");
+
+        canvas.width = 1920;
+        canvas.height = 1080;
     }
 
     buttonDepth.onclick = function () {
         socket.send("Depth");
+
+        canvas.width = 512;
+        canvas.height = 424;
     }
 };

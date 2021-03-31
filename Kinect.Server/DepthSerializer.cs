@@ -41,34 +41,34 @@ namespace Kinect.Server
         /// <summary>
         /// The actual depth values.
         /// </summary>
-        static short[] _depthData = null;
+        static ushort[] _depthData = null;
 
         /// <summary>
         /// Serializes a depth frame.
         /// </summary>
         /// <param name="frame">The specified depth frame.</param>
         /// <returns>A binary representation of the frame.</returns>
-        public static byte[] Serialize(this DepthImageFrame frame)
+        public static byte[] Serialize(this DepthFrame frame)
         {
             if (_depthBitmap == null)
             {
-                _depthWidth = frame.Width;
-                _depthHeight = frame.Height;
+                _depthWidth = frame.FrameDescription.Width;
+                _depthHeight = frame.FrameDescription.Height;
                 _depthStride = _depthWidth * Constants.PIXEL_FORMAT.BitsPerPixel / 8;
-                _depthData = new short[frame.PixelDataLength];
+                _depthData = new ushort[frame.FrameDescription.LengthInPixels];
                 _depthPixels = new byte[_depthHeight * _depthWidth * 4];
                 _depthBitmap = new WriteableBitmap(_depthWidth, _depthHeight, Constants.DPI, Constants.DPI, Constants.PIXEL_FORMAT, null);
             }
 
-            frame.CopyPixelDataTo(_depthData);
+            frame.CopyFrameDataToArray(_depthData);
 
             for (int depthIndex = 0, colorIndex = 0; depthIndex < _depthData.Length && colorIndex < _depthPixels.Length; depthIndex++, colorIndex += 4)
             {
                 // Get the depth value.
-                int depth = _depthData[depthIndex] >> DepthImageFrame.PlayerIndexBitmaskWidth;
+                ushort depth = _depthData[depthIndex];
 
                 // Equal coloring for monochromatic histogram.
-                byte intensity = (byte)(255 - (255 * Math.Max(depth - Constants.MIN_DEPTH_DISTANCE, 0) / (Constants.MAX_DEPTH_DISTANCE_OFFSET)));
+                byte intensity = (byte)(255 - (255 * Math.Max(depth - frame.DepthMinReliableDistance, 0) / (frame.DepthMaxReliableDistance)));
 
                 _depthPixels[colorIndex + 0] = intensity;
                 _depthPixels[colorIndex + 1] = intensity;

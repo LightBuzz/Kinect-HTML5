@@ -9,13 +9,14 @@ namespace Kinect.Server
 {
     class Program
     {
-        static List<IWebSocketConnection> _clients = new List<IWebSocketConnection>();
+        private static List<IWebSocketConnection> _clients = new List<IWebSocketConnection>();
 
-        static Skeleton[] _skeletons = new Skeleton[6];
+        private static Body[] _skeletons = new Body[6];
+        private static MultiSourceFrameReader _reader;
 
-        static Mode _mode = Mode.Color;
+        private static Mode _mode = Mode.Color;
 
-        static CoordinateMapper _coordinateMapper;
+        private static CoordinateMapper _coordinateMapper;
 
         static void Main(string[] args)
         {
@@ -62,25 +63,23 @@ namespace Kinect.Server
 
         private static void InitilizeKinect()
         {
-            var sensor = KinectSensor.KinectSensors.SingleOrDefault();
+            var sensor = KinectSensor.GetDefault();
 
             if (sensor != null)
             {
-                sensor.ColorStream.Enable();
-                sensor.DepthStream.Enable();
-                sensor.SkeletonStream.Enable();
-
-                sensor.AllFramesReady += Sensor_AllFramesReady;
+                sensor.Open();
 
                 _coordinateMapper = sensor.CoordinateMapper;
-
-                sensor.Start();
+                _reader = sensor.OpenMultiSourceFrameReader(FrameSourceTypes.Color | FrameSourceTypes.Depth | FrameSourceTypes.Body);
+                _reader.MultiSourceFrameArrived += Reader_MultiSourceFrameArrived;
             }
         }
 
-        static void Sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
+        private static void Reader_MultiSourceFrameArrived(object sender, MultiSourceFrameArrivedEventArgs e)
         {
-            using (var frame = e.OpenColorImageFrame())
+            var multisource = e.FrameReference.AcquireFrame();
+
+            using (var frame = multisource.ColorFrameReference.AcquireFrame())
             {
                 if (frame != null)
                 {
@@ -96,7 +95,7 @@ namespace Kinect.Server
                 }
             }
 
-            using (var frame = e.OpenDepthImageFrame())
+            using (var frame = multisource.DepthFrameReference.AcquireFrame())
             {
                 if (frame != null)
                 {
@@ -112,13 +111,13 @@ namespace Kinect.Server
                 }
             }
 
-            using (var frame = e.OpenSkeletonFrame())
+            using (var frame = multisource.BodyFrameReference.AcquireFrame())
             {
                 if (frame != null)
                 {
-                    frame.CopySkeletonDataTo(_skeletons);
+                    frame.GetAndRefreshBodyData(_skeletons);
 
-                    var users = _skeletons.Where(s => s.TrackingState == SkeletonTrackingState.Tracked).ToList();
+                    var users = _skeletons.Where(s => s.IsTracked).ToList();
 
                     if (users.Count > 0)
                     {
